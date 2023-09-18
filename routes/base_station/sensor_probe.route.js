@@ -93,7 +93,7 @@ router.get("/:id/sensor_probe", async (req, res) => {
     return res.status(200).json(sensorProbes);
 });
 
-// GET /:id/sensor_probe/:id
+// GET /:id/sensor_probe/:sensorProbeId
 // Get a sensor probe by id
 router.get("/:id/sensor_probe/:sensorProbeId", async (req, res) => {
     const { id, sensorProbeId } = req.params;
@@ -132,6 +132,12 @@ router.get("/:id/sensor_probe/:sensorProbeId", async (req, res) => {
     }
     return res.status(200).json(sensorProbe);
 });
+
+// POST /:id/sensor_probe/:sensorProbeId/pump
+// Add a new pump to a sensor probe
+
+// GET /:id/sensor_probe/:sensorProbeId/pump
+// Get pump details for a sensor probe
 
 // GET /:id/sensor_probe/:id/weather_data
 // Get weather data for a sensor probe

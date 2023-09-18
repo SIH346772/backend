@@ -99,6 +99,8 @@ model WaterPump {
   baseStationId        Int?
   logs                 WaterPumpLog[]
   sensorProbes         SensorProbe[]
+
+  @@unique([pumpNo, baseStationId])
 }
 
 model WaterPumpLog {
