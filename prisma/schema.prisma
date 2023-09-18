@@ -14,7 +14,7 @@ model Tree {
   sensorProbes SensorProbe[]
 }
 
-model OTP {
+model otp {
   id        String   @id @default(uuid())
   phone     String
   otp       String

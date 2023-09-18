@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const prisma = require("../db").getInstance();
+const prisma = require("../../db").getInstance();
 
 // POST /:id/pump
 // Add a new pump to a base station
