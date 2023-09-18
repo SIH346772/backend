@@ -30,6 +30,8 @@ app.use("/auth", require("./routes/auth.route"));
 app.use("/tree", require("./routes/tree.route"));
 app.use("/account", require("./middleware").AuthMiddleware.authRequired, require("./routes/account.route"));
 app.use("/base_station", require("./middleware").AuthMiddleware.authRequired, require("./routes/base_station/index"));
+// TODO: add middleware to check if request is from authenticated source
+app.use("/external", require("./routes/external_service/index.route"));
 
 // Global error handler
 app.use((err, req, res, next) => {
