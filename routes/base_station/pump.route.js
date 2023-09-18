@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const prisma = require("../../db").getInstance();
+const mqtt = require("../../mqtt");
 
 // POST /:base_station_id/pump
 // Add a new pump to a base station
@@ -191,6 +192,120 @@ router.get("/:base_station_id/pump/:pump_id/logs", async (req, res) => {
     },
   });
   return res.status(200).json(logs);
+});
+
+// POST /:id/pump/:pump_id/start
+// Start a pump
+router.post("/:base_station_id/pump/:pump_id/start", async (req, res) => {
+  const { base_station_id, pump_id } = req.params;
+  if (!base_station_id) {
+    return res.status(400).json({
+      error: "Base station ID is required",
+    });
+  }
+  if (!pump_id) {
+    return res.status(400).json({
+      error: "Pump ID is required",
+    });
+  }
+  const baseStation = await prisma.baseStation.findFirst({
+    select: {
+      id: true,
+      hardwareId: true,
+    },
+    where: {
+      id: parseInt(base_station_id),
+      userId: req.user.id,
+    },
+  });
+  if (!baseStation) {
+    return res.status(404).json({
+      error: "Base station not found",
+    });
+  }
+  const pump = await prisma.waterPump.findFirst({
+    select: {
+      pumpNo: true,
+    },
+    where: {
+      id: parseInt(pump_id),
+      baseStationId: parseInt(base_station_id),
+    },
+  });
+  const res2 = await mqtt.publishMessageToMQTT(
+    `sub/${baseStation.hardwareId}`,
+    JSON.stringify({
+      action: "pump_on",
+      data: {
+        pump_no: pump.pumpNo,
+      },
+    })
+  );
+  if (!res2) {
+    return res.status(500).json({
+      error: "Failed to start pump",
+    });
+  }
+  return res.status(200).json({
+    message: "Pump started",
+  });
+});
+
+// POST /:id/pump/:pump_id/stop
+// Stop a pump
+router.post("/:base_station_id/pump/:pump_id/stop", async (req, res) => {
+  const { base_station_id, pump_id } = req.params;
+  if (!base_station_id) {
+    return res.status(400).json({
+      error: "Base station ID is required",
+    });
+  }
+  if (!pump_id) {
+    return res.status(400).json({
+      error: "Pump ID is required",
+    });
+  }
+  const baseStation = await prisma.baseStation.findFirst({
+    select: {
+      id: true,
+      hardwareId: true,
+    },
+    where: {
+      id: parseInt(base_station_id),
+      userId: req.user.id,
+    },
+  });
+  if (!baseStation) {
+    return res.status(404).json({
+      error: "Base station not found",
+    });
+  }
+  const pump = await prisma.waterPump.findFirst({
+    select: {
+      pumpNo: true,
+    },
+    where: {
+      id: parseInt(pump_id),
+      baseStationId: parseInt(base_station_id),
+    },
+  });
+  const res2 = await mqtt.publishMessageToMQTT(
+    `sub/${baseStation.hardwareId}`,
+    JSON.stringify({
+      action: "pump_off",
+      data: {
+        pump_no: pump.pumpNo,
+      },
+    })
+  );
+  if (!res2) {
+    return res.status(500).json({
+      error: "Failed to stop pump",
+    });
+  }
+  return res.status(200).json({
+    message: "Pump stopped",
+  });
 });
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const prisma = require("../../db").getInstance();
+const mqtt = require("../../mqtt");
 
 // POST /external/data/soil/:base_station_hardware_id/:sensor_probe_hardware_id
 // Add a new data to a sensor probe
@@ -139,9 +140,19 @@ router.post("/base_station/:base_station_hardware_id", async (req, res) => {
         predictedWaterVolume: true,
       },
     });
-    // TODO: trigger to check predictedWaterVolume <=0 and stop pump
+    // trigger to check predictedWaterVolume <=0 and stop pump
     if (updatedPump.predictedWaterVolume <= 0) {
-      console.log(`Pump ${pump_no_int} stopped ! Implement this !`);
+      // stop pump
+      await mqtt.publishMessageToMQTT(
+        `sub/${base_station_hardware_id}`,
+        JSON.stringify({
+          action: "pump_off",
+          data: {
+            pump_no: pump_no_int,
+          },
+        })
+      );
+      console.log(`Pump ${pump_no_int} stopped !`);
     }
   }
   return res.status(201).json({
