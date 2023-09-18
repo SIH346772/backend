@@ -1,16 +1,16 @@
 const router = require("express").Router();
 const prisma = require("../../db").getInstance();
 
-// POST /external/data/soil/:base_station_id/:sensor_probe_id
+// POST /external/data/soil/:base_station_hardware_id/:sensor_probe_hardware_id
 // Add a new data to a sensor probe
-router.post("/soil/:base_station_id/:sensor_probe_id", async (req, res) => {
-  const { base_station_id, sensor_probe_id } = req.params;
-  if (!base_station_id) {
+router.post("/soil/:base_station_hardware_id/:sensor_probe_hardware_id", async (req, res) => {
+  const { base_station_hardware_id, sensor_probe_hardware_id } = req.params;
+  if (!base_station_hardware_id) {
     return res.status(400).json({
       error: "Hardware ID is required",
     });
   }
-  if (!sensor_probe_id) {
+  if (!sensor_probe_hardware_id) {
     return res.status(400).json({
       error: "Sensor probe ID is required",
     });
@@ -18,9 +18,9 @@ router.post("/soil/:base_station_id/:sensor_probe_id", async (req, res) => {
   // fetch sensor probe
   const sensorProbe = await prisma.sensorProbe.findFirst({
     where: {
-      hardwareId: sensor_probe_id,
+      hardwareId: sensor_probe_hardware_id,
       baseStation: {
-        hardwareId: base_station_id,
+        hardwareId: base_station_hardware_id,
       },
     },
   });
@@ -30,11 +30,7 @@ router.post("/soil/:base_station_id/:sensor_probe_id", async (req, res) => {
     });
   }
   const { temperature, bottomLayerMoisture, topLayerMoisture, timestamp } = req.body;
-  if (!temperature || !bottomLayerMoisture || !topLayerMoisture || !timestamp) {
-    return res.status(400).json({
-      error: "Temperature, bottom layer moisture, top layer moisture, and timestamp are required",
-    });
-  }
+
   // timestamp unix to date
   const timestampDate = new Date(timestamp * 1000);
 
@@ -57,11 +53,11 @@ router.post("/soil/:base_station_id/:sensor_probe_id", async (req, res) => {
   });
 });
 
-// POST /external/data/base_station/:base_station_id
-router.post("/base_station/:base_station_id", async (req, res) => {
+// POST /external/data/base_station/:base_station_hardware_id
+router.post("/base_station/:base_station_hardware_id", async (req, res) => {
   // [pump_1, pump_2, temperature, hummidity, timestamp]
-  const { base_station_id } = req.params;
-  if (!base_station_id) {
+  const { base_station_hardware_id } = req.params;
+  if (!base_station_hardware_id) {
     return res.status(400).json({
       error: "Hardware ID is required",
     });
@@ -69,7 +65,7 @@ router.post("/base_station/:base_station_id", async (req, res) => {
   // fetch base station
   const baseStation = await prisma.baseStation.findFirst({
     where: {
-      hardwareId: base_station_id,
+      hardwareId: base_station_hardware_id,
     },
   });
   if (!baseStation) {
@@ -130,27 +126,27 @@ router.post("/base_station/:base_station_id", async (req, res) => {
     });
     // deduct water amount from predictedWaterVolume and update
     const updatedPump = await prisma.waterPump.update({
-        where: {
-            id: pump.id,
+      where: {
+        id: pump.id,
+      },
+      data: {
+        predictedWaterVolume: {
+          decrement: released_water_amount,
         },
-        data: {
-            predictedWaterVolume: {
-                decrement: released_water_amount
-            }
-        },
-        select: {
-            id: pump.id,
-            predictedWaterVolume: true
-        }
-    })
+      },
+      select: {
+        id: pump.id,
+        predictedWaterVolume: true,
+      },
+    });
     // TODO: trigger to check predictedWaterVolume <=0 and stop pump
     if (updatedPump.predictedWaterVolume <= 0) {
-        console.log(`Pump ${pump_no_int} stopped ! Implement this !`);
+      console.log(`Pump ${pump_no_int} stopped ! Implement this !`);
     }
   }
-    return res.status(201).json({
-        message: "Data logged",
-    })
+  return res.status(201).json({
+    message: "Data logged",
+  });
 });
 
 module.exports = router;
