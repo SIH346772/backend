@@ -75,6 +75,7 @@ model WeatherData {
   humidity      Float
   pressure      Float
   windSpeed     Float
+  windDeg       Float
   precipitation Float
   timestamp     DateTime
   sensorProbe   SensorProbe? @relation(fields: [sensorProbeId], references: [id])

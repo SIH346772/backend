@@ -87,6 +87,40 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json(baseStation);
 });
 
+// GET /:id/local_weather_data
+router.get("/:id/local_weather_data", async (req, res) => {
+    const { id } = req.params;
+    const baseStation = await prisma.baseStation.findFirst({
+        select: {
+            id: true
+        },
+        where: {
+            id: parseInt(id),
+            userId: req.user.id
+        },
+    });
+    if (!baseStation) {
+        return res.status(404).json({
+            error: "Base station not found",
+        });
+    }
+    const localWeatherData = await prisma.localWeatherData.findMany({
+        select: {
+            id: true,
+            humidity: true,
+            temperature: true,
+            timestamp: true
+        },
+        where: {
+            baseStationId: baseStation.id
+        },
+        orderBy: {
+            timestamp: "desc"
+        }
+    })
+    return res.status(200).json(localWeatherData);
+})
+
 // GET /:id/latest_data
 // TODO: Get the latest data of each thing from a base station
 
