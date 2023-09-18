@@ -35,6 +35,7 @@ app.use("/base_station", require("./middleware").AuthMiddleware.authRequired, re
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: "Unexpected Error" });
+  next(err);
 });
 
 // Listen

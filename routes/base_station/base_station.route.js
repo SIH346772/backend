@@ -10,6 +10,21 @@ router.post("/", async (req, res) => {
             error: "Hardware ID, latitude and longitude are required",
         });
     }
+    // verify that the hardware ID is unique
+    const existingBaseStation = await prisma.baseStation.findFirst({
+        select: {
+            id: true
+        },
+        where: {
+            hardwareId,
+        },
+    });
+    if (existingBaseStation) {
+        return res.status(400).json({
+            error: "Hardware ID already exists",
+        });
+    }
+    // create
     const baseStation = await prisma.baseStation.create({
         select: {
             id: true,
@@ -74,7 +89,6 @@ router.get("/:id", async (req, res) => {
 
 // GET /:id/latest_data
 // TODO: Get the latest data of each thing from a base station
-
 
 
 module.exports = router
