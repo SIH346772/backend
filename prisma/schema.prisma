@@ -8,9 +8,95 @@ datasource db {
   url      = env("DB_URL")
 }
 
+model Tree {
+  id           String        @id @default(uuid())
+  name         String
+  sensorProbes SensorProbe[]
+}
+
 model User {
-  id      String @id @default(uuid())
-  name    String
-  phone   String @unique
-  address String
+  id           String        @id @default(uuid())
+  name         String
+  phone        String        @unique
+  address      String
+  baseStations BaseStation[]
+}
+
+model BaseStation {
+  id                Int                @id @default(autoincrement())
+  hardwareId        String             @unique
+  lat               Float
+  lng               Float
+  user              User?              @relation(fields: [userId], references: [id])
+  userId            String?
+  sensorProbes      SensorProbe[]
+  localWeatherDatas LocalWeatherData[]
+  waterPumps        WaterPump[]
+
+  @@index([hardwareId])
+}
+
+model SensorProbe {
+  id            Int           @id @default(autoincrement())
+  hardwareId    String        @unique
+  lat           Float
+  lng           Float
+  baseStation   BaseStation?  @relation(fields: [baseStationId], references: [id])
+  baseStationId Int?
+  tree          Tree?         @relation(fields: [treeId], references: [id])
+  treeId        String?
+  pumps         WaterPump[]
+  weatherDatas  WeatherData[]
+  soilDatas     SoilData[]
+
+  @@index([hardwareId])
+}
+
+model LocalWeatherData {
+  id            Int          @id @default(autoincrement())
+  temperature   Float
+  humidity      Float
+  timestamp     DateTime
+  baseStation   BaseStation? @relation(fields: [baseStationId], references: [id])
+  baseStationId Int?
+}
+
+model WeatherData {
+  id            Int          @id @default(autoincrement())
+  temperature   Float
+  humidity      Float
+  pressure      Float
+  windSpeed     Float
+  precipitation Float
+  timestamp     DateTime
+  sensorProbe   SensorProbe? @relation(fields: [sensorProbeId], references: [id])
+  sensorProbeId Int?
+}
+
+model SoilData {
+  id                  Int          @id @default(autoincrement())
+  temperature         Float
+  topLayerMoisture    Float
+  bottomLayerMoisture Float
+  timestamp           DateTime
+  sensorProbe         SensorProbe? @relation(fields: [sensorProbeId], references: [id])
+  sensorProbeId       Int?
+}
+
+model WaterPump {
+  id                   Int            @id @default(autoincrement())
+  pumpNo               Int
+  predictedWaterVolume Int?           @default(0)
+  baseStation          BaseStation?   @relation(fields: [baseStationId], references: [id])
+  baseStationId        Int?
+  logs                 WaterPumpLog[]
+  sensorProbes         SensorProbe[]
+}
+
+model WaterPumpLog {
+  id          Int        @id @default(autoincrement())
+  volume      Int        @default(0)
+  timestamp   DateTime
+  waterPump   WaterPump? @relation(fields: [waterPumpId], references: [id])
+  waterPumpId Int?
 }
