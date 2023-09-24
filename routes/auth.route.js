@@ -39,7 +39,7 @@ router.post("/otp", async (req, res) => {
 
 // POST /auth/login
 router.post("/login", async (req, res) => {
-  let { phone, otp, otpId } = req.body;
+  let { phone, otp, otpId,fcmtoken } = req.body;
   if (!phone || !otp || !otpId) {
     return res.status(400).json({
       error: "Phone number, OTP and OTP ID is required",
@@ -79,12 +79,29 @@ router.post("/login", async (req, res) => {
       id: otpId,
     },
   });
+
+  //pushing fcmtoken
+
+  user.fcmTokens.push(fcmToken);
+
+  await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      fcmTokens: user.fcmTokens,
+    },
+  });
+
   // Generate JWT token
   const token = JWT.generate({
     id: user.id,
     phone: user.phone,
     name: user.name,
   });
+
+
+
   return res.status(200).json({
     message: "Login successful",
     token,
@@ -94,7 +111,7 @@ router.post("/login", async (req, res) => {
 
 // POST /auth/register
 router.post("/register", async (req, res) => {
-  let { phone, otp, otpId, name, address } = req.body;
+  let { phone, otp, otpId, name, address,fcmToken } = req.body;
   if (!phone || !otp || !otpId || !name || !address) {
     return res.status(400).json({
       error: "Phone number, OTP, OTP ID, name and address is required",
@@ -105,6 +122,7 @@ router.post("/register", async (req, res) => {
   otpId = otpId.toString().trim();
   name = name.toString().trim();
   address = address.toString().trim();
+  fcmToken = fcmToken.toString().trim();
   const record = await prisma.otp.findUnique({
     where: {
       id: otpId,
@@ -136,11 +154,13 @@ router.post("/register", async (req, res) => {
       error: "User already exists",
     });
   }
+  let fcmTokens = [fcmToken];
   const newUser = await prisma.user.create({
     data: {
       phone,
       name,
       address,
+      fcmTokens
     },
   });
   const token = JWT.generate({

@@ -27,6 +27,7 @@ model User {
   phone        String        @unique
   address      String
   baseStations BaseStation[]
+  fcmTokens    String[]
 }
 
 model BaseStation {

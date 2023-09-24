@@ -8,6 +8,17 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 
+var admin = require("firebase-admin");
+
+const { applicationDefault } = require("firebase-admin/app");
+
+admin.initializeApp({
+  credential: applicationDefault(),
+  projectId:"agrio"
+
+})
+
+
 // Config
 global.__basedir = __dirname;
 app.disable("x-powered-by");
