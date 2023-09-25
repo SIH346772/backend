@@ -2,21 +2,26 @@ require("dotenv").config();
 
 const PORT = parseInt(process.env.PORT);
 const DEBUG = parseInt(process.env.DEBUG);
-
 // Setup
-const express = require("express");
-const cors = require("cors");
-const app = express();
 
 var admin = require("firebase-admin");
 
 const { applicationDefault } = require("firebase-admin/app");
-
 admin.initializeApp({
-  credential: applicationDefault(),
-  projectId:"agrio"
+    credential: applicationDefault(),
+    projectId: "agiro"
+  
+  })
 
-})
+const express = require("express");
+const cron = require("node-cron");
+const cors = require("cors");
+const app = express();
+
+
+const cronjobtask = require("./cronjob");
+
+cron.schedule("*/30 * * * * *", cronjobtask);
 
 
 // Config
