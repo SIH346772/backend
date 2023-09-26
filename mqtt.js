@@ -1,5 +1,6 @@
 const { IoTDataPlaneClient, PublishCommand } = require("@aws-sdk/client-iot-data-plane")
 const client = new IoTDataPlaneClient({
+    region: "ap-south-1",
     credentials: {
         accessKeyId: process.env.MQTT_ACCESS_ID,
         secretAccessKey: process.env.MQTT_ACCESS_KEY
