@@ -341,4 +341,76 @@ router.get("/:baseStationId/sensor_probe/:sensorProbeId/soil_data", async (req, 
     return res.status(200).json(soil_data);
 });
 
+// GET /:baseStationId/sensor_probe/:sensorProbeId/latest_data
+// Get the latest data for a sensor probe
+router.get("/:baseStationId/sensor_probe/:sensorProbeId/latest_data", async (req, res) => {
+    const { baseStationId, sensorProbeId } = req.params;
+    if (!baseStationId || !sensorProbeId) {
+        return res.status(400).json({
+            error: "Base station ID and sensor probe ID are required",
+        });
+    }
+    const baseStation = await prisma.baseStation.findFirst({
+        select: {
+            id: true,
+        },
+        where: {
+            id: parseInt(baseStationId),
+            userId: req.user.id,
+        },
+    });
+    if (!baseStation) {
+        return res.status(404).json({
+            error: "Base station not found",
+        });
+    }
+    const sensorProbe = await prisma.sensorProbe.findFirst({
+        select: {
+            id: true,
+        },
+        where: {
+            id: parseInt(sensorProbeId),
+            baseStationId: baseStation.id,
+        },
+    });
+    if (!sensorProbe) {
+        return res.status(404).json({
+            error: "Sensor probe not found",
+        });
+    }
+    const latest_soil_data = await prisma.soilData.findFirst({
+        where: {
+            sensorProbeId: sensorProbe.id,
+        },
+        select: {
+            id: true,
+            temperature: true,
+            topLayerMoisture: true,
+            bottomLayerMoisture: true,
+            timestamp: true,
+        },
+        orderBy: {
+            timestamp: "desc",
+        }
+    })
+
+    let data = {};
+    if (latest_soil_data) {
+      data = {
+        temperature: latest_soil_data.temperature,
+        topLayerMoisture: latest_soil_data.topLayerMoisture,
+        bottomLayerMoisture: latest_soil_data.bottomLayerMoisture,
+        timestamp: latest_soil_data.timestamp,
+      }
+    } else {
+      data = {
+        temperature: null,
+        topLayerMoisture: null,
+        bottomLayerMoisture: null,
+        timestamp: null,
+      }
+    }
+    return res.status(200).json(data);
+});
+
 module.exports = router;
