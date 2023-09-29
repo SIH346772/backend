@@ -32,6 +32,7 @@ model User {
 
 model BaseStation {
   id                Int                @id @default(autoincrement())
+  name              String             @default("")
   hardwareId        String             @unique
   lat               Float
   lng               Float
@@ -46,6 +47,7 @@ model BaseStation {
 
 model SensorProbe {
   id            Int           @id @default(autoincrement())
+  name          String        @default("")
   hardwareId    String        @unique
   lat           Float
   lng           Float

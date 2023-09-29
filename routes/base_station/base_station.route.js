@@ -4,10 +4,10 @@ const prisma = require("../../db").getInstance();
 // POST /
 // Add a new base station
 router.post("/", async (req, res) => {
-  const { hardwareId, lat, lng } = req.body;
-  if (!hardwareId || !lat || !lng) {
+  const { hardwareId, lat, lng, name } = req.body;
+  if (!hardwareId || !lat || !lng || !name) {
     return res.status(400).json({
-      error: "Hardware ID, latitude and longitude are required",
+      error: "Hardware ID, name, latitude and longitude are required",
     });
   }
   // verify that the hardware ID is unique
@@ -28,12 +28,14 @@ router.post("/", async (req, res) => {
   const baseStation = await prisma.baseStation.create({
     select: {
       id: true,
+      name: true,
       hardwareId: true,
       lat: true,
       lng: true,
     },
     data: {
       hardwareId,
+      name,
       lat,
       lng,
       user: {
@@ -52,6 +54,7 @@ router.get("/", async (req, res) => {
   const baseStations = await prisma.baseStation.findMany({
     select: {
       id: true,
+      name: true,
       hardwareId: true,
       lat: true,
       lng: true,
@@ -70,6 +73,7 @@ router.get("/:id", async (req, res) => {
   const baseStation = await prisma.baseStation.findUnique({
     select: {
       id: true,
+      name: true,
       hardwareId: true,
       lat: true,
       lng: true,
