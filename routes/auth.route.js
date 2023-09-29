@@ -122,6 +122,9 @@ router.post("/register", async (req, res) => {
       error: "Phone number, OTP, OTP ID, name and address is required",
     });
   }
+  if(!fcmToken) {
+    fcmToken = "";
+  }
   phone = phone.toString().trim();
   otp = otp.toString().trim();
   otpId = otpId.toString().trim();
@@ -159,13 +162,16 @@ router.post("/register", async (req, res) => {
       error: "User already exists",
     });
   }
-  let fcmTokens = [fcmToken];
+  let fcmTokens = [];
+  if (fcmToken != "") {
+    fcmTokens.push(fcmToken);
+  }
   const newUser = await prisma.user.create({
     data: {
       phone,
       name,
       address,
-      fcmTokens,
+      fcmTokens
     },
   });
   const token = JWT.generate({
