@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const prisma = require("../db").getInstance();
+const getDiseasesData = require("../utils/diseasesData.js")
 
 // GET /tree
 router.get("/", async (req, res) => {
@@ -10,6 +11,10 @@ router.get("/", async (req, res) => {
     },
   });
   res.json(tree);
+});
+
+router.get('/diseases/', (req, res) => {
+  res.json(getDiseasesData());
 });
 
 module.exports = router;
