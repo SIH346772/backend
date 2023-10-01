@@ -79,7 +79,7 @@ router.get("/:base_station_id/pump", async (req, res) => {
       error: "Base station not found",
     });
   }
-  const pumps = await prisma.waterPump.findMany({
+  let pumps = await prisma.waterPump.findMany({
     select: {
       id: true,
       pumpNo: true,
@@ -90,6 +90,16 @@ router.get("/:base_station_id/pump", async (req, res) => {
       baseStationId: baseStation.id,
     },
   });
+  // add released water volume
+  pumps = await Promise.all(
+    pumps.map(async (pump) => {
+      const volume = await calculateReleasedWaterVolume(pump.id);
+      return {
+        ...pump,
+        releasedWaterVolume: volume,
+      };
+    })
+  );
   return res.status(200).json(pumps);
 });
 
@@ -118,7 +128,7 @@ router.get("/:base_station_id/pump/:pump_id", async (req, res) => {
       error: "Base station not found",
     });
   }
-  const pump = await prisma.waterPump.findUnique({
+  let pump = await prisma.waterPump.findUnique({
     select: {
       id: true,
       pumpNo: true,
@@ -135,6 +145,12 @@ router.get("/:base_station_id/pump/:pump_id", async (req, res) => {
       error: "Pump not found",
     });
   }
+  // add released water volume
+  const volume = await calculateReleasedWaterVolume(pump.id);
+  pump = {
+    ...pump,
+    releasedWaterVolume: volume,
+  };
   return res.status(200).json(pump);
 });
 
@@ -196,65 +212,22 @@ router.get("/:base_station_id/pump/:pump_id/logs", async (req, res) => {
   return res.status(200).json(logs);
 });
 
-// GET /:id/pump/:pump_id/water_volume
-// Get water volume for a pump today
-router.get("/:base_station_id/pump/:pump_id/water_volume", async (req, res) => {
-  const { base_station_id, pump_id } = req.params;
-  if (!base_station_id) {
-    return res.status(400).json({
-      error: "Base station ID is required",
-    });
-  }
-  if (!pump_id) {
-    return res.status(400).json({
-      error: "Pump ID is required",
-    });
-  }
-  const baseStation = await prisma.baseStation.findFirst({
-    select: {
-      id: true,
-    },
-    where: {
-      id: parseInt(base_station_id),
-      userId: req.user.id,
-    },
-  });
-  if (!baseStation) {
-    return res.status(404).json({
-      error: "Base station not found",
-    });
-  }
-  const pump = await prisma.waterPump.findFirst({
-    select: {
-      id: true,
-    },
-    where: {
-      id: parseInt(pump_id),
-      baseStationId: parseInt(base_station_id),
-    },
-  });
-  if (!pump) {
-    return res.status(404).json({
-      error: "Pump not found",
-    });
-  }
+// function to calculate water volume
+async function calculateReleasedWaterVolume(pumpId) {
   const logs = await prisma.waterPumpLog.findMany({
     select: {
       volume: true,
     },
     where: {
-      waterPumpId: pump.id,
+      waterPumpId: pumpId,
       timestamp: {
         gte: new Date().setHours(0, 0, 0, 0),
       },
     },
   });
   const volume = logs.reduce((acc, curr) => acc + curr.volume, 0);
-  return res.status(200).json({
-    volume,
-  });
-});
-
+  return volume;
+}
 
 // POST /:id/pump/:pump_id/start
 // Start a pump
