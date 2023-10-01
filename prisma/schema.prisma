@@ -103,7 +103,7 @@ model WaterPump {
   baseStationId        Int?
   logs                 WaterPumpLog[]
   sensorProbes         SensorProbe[]
-
+  running                Boolean        @default(false)
   @@unique([pumpNo, baseStationId])
 }
 

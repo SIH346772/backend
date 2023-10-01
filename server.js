@@ -21,7 +21,9 @@ const app = express();
 
 const cronjobtask = require("./cronjob");
 
-cron.schedule("*/30 * * * * *", cronjobtask);
+cron.schedule("*/30 * * * * *", cronjobtask.AutomatedRegulation);
+cron.schedule("*/30 * * * * *", cronjobtask.RelayPumpOnMessages);
+
 
 
 // Config
