@@ -371,6 +371,11 @@ router.get("/:baseStationId/sensor_probe/:sensorProbeId/latest_data", async (req
     const sensorProbe = await prisma.sensorProbe.findFirst({
         select: {
             id: true,
+            tree: {
+              select: {
+                name: true,
+              }
+            }
         },
         where: {
             id: parseInt(sensorProbeId),
@@ -405,6 +410,7 @@ router.get("/:baseStationId/sensor_probe/:sensorProbeId/latest_data", async (req
         topLayerMoisture: latest_soil_data.topLayerMoisture,
         bottomLayerMoisture: latest_soil_data.bottomLayerMoisture,
         timestamp: latest_soil_data.timestamp,
+        treeName: sensorProbe.tree ? sensorProbe.tree.name : "",
       }
     } else {
       data = {
@@ -412,6 +418,7 @@ router.get("/:baseStationId/sensor_probe/:sensorProbeId/latest_data", async (req
         topLayerMoisture: null,
         bottomLayerMoisture: null,
         timestamp: null,
+        treeName: sensorProbe.tree ? sensorProbe.tree.name : "",
       }
     }
     return res.status(200).json(data);
