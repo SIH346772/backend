@@ -221,7 +221,7 @@ async function calculateReleasedWaterVolume(pumpId) {
     where: {
       waterPumpId: pumpId,
       timestamp: {
-        gte: new Date().setHours(0, 0, 0, 0),
+        gte: new Date(new Date().setHours(0, 0, 0, 0)),
       },
     },
   });
